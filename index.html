@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Chart with D3.js</title>
+  <title>Interactive Charts with D3.js</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
     }
-    .bar {
-      fill: steelblue;
-    }
-    .bar:hover {
-      fill: orange;
+    .line {
+      fill: none;
+      stroke-width: 2px;
     }
     .axis-label {
       font-size: 12px;
@@ -31,6 +29,9 @@
       pointer-events: none;
       opacity: 0;
     }
+    .chart-container {
+      margin-bottom: 50px;
+    }
   </style>
 </head>
 <body>
@@ -41,7 +42,7 @@
 
     if (userInput !== password) {
       alert("Incorrect password. Access denied.");
-      window.location.href = "https://www.google.com"; // Redirect to another page or leave blank to stay on the same page
+      window.location.href = "https://www.example.com"; // Redirect to another page or leave blank to stay on the same page
     } else {
       alert("Access granted. Welcome!");
     }
@@ -50,8 +51,11 @@
   <h2>Interactive Bar Chart: Sessions vs Revenue</h2>
   <div id="chart"></div>
 
+  <h2>Monthly Sessions by Channel</h2>
+  <div id="monthly-chart"></div>
+
   <script>
-    // Data
+    // Data for the first chart (Sessions vs Revenue)
     const data = [
       { channel: "Cross-network", sessions: 120085, revenue: 178476.27 },
       { channel: "Direct", sessions: 65113, revenue: 47548.51 },
@@ -66,80 +70,202 @@
       { channel: "Unassigned", sessions: 2533, revenue: 10858.11 }
     ];
 
+    // Data for the monthly chart
+    const monthlyData = [
+      { month: "January", "Cross-network": 5237, "Paid Search": 1415, "Paid Shopping": 874, "Direct": 5628, "Email": 142, "Organic Search": 9642, "Organic Shopping": 633, "Organic Social": 924, "Paid Social": 1373, "Referral": 77, "Unassigned": 62 },
+      { month: "February", "Cross-network": 7031, "Paid Search": 1438, "Paid Shopping": 524, "Direct": 6030, "Email": 108, "Organic Search": 10137, "Organic Shopping": 577, "Organic Social": 1236, "Paid Social": 1566, "Referral": 146, "Unassigned": 64 },
+      { month: "March", "Cross-network": 4304, "Paid Search": 757, "Paid Shopping": 4590, "Direct": 5664, "Email": 85, "Organic Search": 10219, "Organic Shopping": 790, "Organic Social": 1157, "Paid Social": 2132, "Referral": 102, "Unassigned": 83 },
+      { month: "April", "Cross-network": 10892, "Paid Search": 240, "Paid Shopping": 647, "Direct": 6004, "Email": 107, "Organic Search": 9334, "Organic Shopping": 1118, "Organic Social": 1163, "Paid Social": 1642, "Referral": 74, "Unassigned": 61 },
+      { month: "May", "Cross-network": 10355, "Paid Search": 24, "Paid Shopping": 218, "Direct": 5754, "Email": 36, "Organic Search": 9066, "Organic Shopping": 1165, "Organic Social": 1576, "Paid Social": 1396, "Referral": 104, "Unassigned": 53 },
+      { month: "June", "Cross-network": 13359, "Paid Search": 13, "Paid Shopping": 203, "Direct": 5890, "Email": 84, "Organic Search": 8886, "Organic Shopping": 1087, "Organic Social": 1721, "Paid Social": 1382, "Referral": 143, "Unassigned": 55 },
+      { month: "July", "Cross-network": 12977, "Paid Search": 25, "Paid Shopping": 243, "Direct": 6697, "Email": 172, "Organic Search": 9611, "Organic Shopping": 1275, "Organic Social": 2173, "Paid Social": 1606, "Referral": 61, "Unassigned": 52 },
+      { month: "August", "Cross-network": 13519, "Paid Search": 125, "Paid Shopping": 310, "Direct": 7107, "Email": 147, "Organic Search": 9882, "Organic Shopping": 1317, "Organic Social": 2384, "Paid Social": 1527, "Referral": 92, "Unassigned": 77 },
+      { month: "September", "Cross-network": 14095, "Paid Search": 244, "Paid Shopping": 278, "Direct": 6003, "Email": 66, "Organic Search": 9364, "Organic Shopping": 1583, "Organic Social": 1958, "Paid Social": 1257, "Referral": 84, "Unassigned": 403 },
+      { month: "October", "Cross-network": 13552, "Paid Search": 277, "Paid Shopping": 219, "Direct": 5003, "Email": 87, "Organic Search": 10150, "Organic Shopping": 1711, "Organic Social": 1668, "Paid Social": 1336, "Referral": 157, "Unassigned": 654 },
+      { month: "November", "Cross-network": 9814, "Paid Search": 202, "Paid Shopping": 164, "Direct": 3749, "Email": 70, "Organic Search": 8711, "Organic Shopping": 1625, "Organic Social": 1217, "Paid Social": 1190, "Referral": 103, "Unassigned": 571 },
+      { month: "December", "Cross-network": 7065, "Paid Search": 164, "Paid Shopping": 158, "Direct": 2589, "Email": 46, "Organic Search": 5774, "Organic Shopping": 1217, "Organic Social": 902, "Paid Social": 1336, "Referral": 662, "Unassigned": 393 }
+    ];
+
     // Set up SVG dimensions
     const margin = { top: 50, right: 30, bottom: 70, left: 60 };
     const width = 800 - margin.left - margin.right;
     const height = 500 - margin.top - margin.bottom;
 
-    // Append SVG to the chart div
-    const svg = d3.select("#chart")
-      .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+    // Function to create the first chart (Sessions vs Revenue)
+    function createChart() {
+      const svg = d3.select("#chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // X scale (channels)
-    const x = d3.scaleBand()
-      .domain(data.map(d => d.channel))
-      .range([0, width])
-      .padding(0.1);
+      // X scale (channels)
+      const x = d3.scaleBand()
+        .domain(data.map(d => d.channel))
+        .range([0, width])
+        .padding(0.1);
 
-    // Y scale (sessions or revenue)
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.sessions)])
-      .range([height, 0]);
+      // Y scale (sessions)
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(data, d => d.sessions)])
+        .range([height, 0]);
 
-    // X axis
-    svg.append("g")
-      .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x))
-      .selectAll("text")
-      .attr("transform", "rotate(-45)")
-      .style("text-anchor", "end");
+      // X axis
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end");
 
-    // Y axis
-    svg.append("g")
-      .call(d3.axisLeft(y));
+      // Y axis
+      svg.append("g")
+        .call(d3.axisLeft(y));
 
-    // Bars
-    svg.selectAll(".bar")
-      .data(data)
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", d => x(d.channel))
-      .attr("y", d => y(d.sessions))
-      .attr("width", x.bandwidth())
-      .attr("height", d => height - y(d.sessions))
-      .on("mouseover", function (event, d) {
-        tooltip.transition().duration(200).style("opacity", 0.9);
-        tooltip.html(`Channel: ${d.channel}<br>Sessions: ${d.sessions}<br>Revenue: ${d.revenue}`)
-          .style("left", (event.pageX + 5) + "px")
-          .style("top", (event.pageY - 28) + "px");
-      })
-      .on("mouseout", function () {
-        tooltip.transition().duration(500).style("opacity", 0);
+      // Bars
+      svg.selectAll(".bar")
+        .data(data)
+        .enter()
+        .append("rect")
+        .attr("class", "bar")
+        .attr("x", d => x(d.channel))
+        .attr("y", d => y(d.sessions))
+        .attr("width", x.bandwidth())
+        .attr("height", d => height - y(d.sessions))
+        .on("mouseover", function (event, d) {
+          tooltip.transition().duration(200).style("opacity", 0.9);
+          tooltip.html(`Channel: ${d.channel}<br>Sessions: ${d.sessions}<br>Revenue: ${d.revenue}`)
+            .style("left", (event.pageX + 5) + "px")
+            .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function () {
+          tooltip.transition().duration(500).style("opacity", 0);
+        });
+
+      // Tooltip
+      const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+      // Axis labels
+      svg.append("text")
+        .attr("transform", `translate(${width / 2},${height + margin.bottom - 10})`)
+        .style("text-anchor", "middle")
+        .text("Channels");
+
+      svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Sessions");
+    }
+
+    // Function to create the monthly line chart
+    function createMonthlyChart() {
+      const svg = d3.select("#monthly-chart")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+      // X scale (months)
+      const x = d3.scalePoint()
+        .domain(monthlyData.map(d => d.month))
+        .range([0, width])
+        .padding(0.5);
+
+      // Y scale (sessions)
+      const y = d3.scaleLinear()
+        .domain([0, d3.max(monthlyData, d => d3.max(Object.values(d).filter(v => typeof v === "number")))])
+        .range([height, 0]);
+
+      // Color scale for channels
+      const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+      // Line generator
+      const line = d3.line()
+        .x(d => x(d.month))
+        .y(d => y(d.value));
+
+      // Channels
+      const channels = Object.keys(monthlyData[0]).filter(key => key !== "month");
+
+      // Add a line for each channel
+      channels.forEach(channel => {
+        const channelData = monthlyData.map(d => ({ month: d.month, value: d[channel] }));
+
+        svg.append("path")
+          .datum(channelData)
+          .attr("class", "line")
+          .attr("d", line)
+          .attr("stroke", color(channel))
+          .attr("stroke-width", 2)
+          .attr("fill", "none");
       });
 
-    // Tooltip
-    const tooltip = d3.select("body").append("div")
-      .attr("class", "tooltip")
-      .style("opacity", 0);
+      // X axis
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end");
 
-    // Axis labels
-    svg.append("text")
-      .attr("transform", `translate(${width / 2},${height + margin.bottom - 10})`)
-      .style("text-anchor", "middle")
-      .text("Channels");
+      // Y axis
+      svg.append("g")
+        .call(d3.axisLeft(y));
 
-    svg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x", 0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text("Sessions");
+      // Tooltip
+      const tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+      // Add circles for data points
+      channels.forEach(channel => {
+        const channelData = monthlyData.map(d => ({ month: d.month, value: d[channel] }));
+
+        svg.selectAll(`.dot-${channel}`)
+          .data(channelData)
+          .enter()
+          .append("circle")
+          .attr("class", `dot-${channel}`)
+          .attr("cx", d => x(d.month))
+          .attr("cy", d => y(d.value))
+          .attr("r", 4)
+          .attr("fill", color(channel))
+          .on("mouseover", function (event, d) {
+            tooltip.transition().duration(200).style("opacity", 0.9);
+            tooltip.html(`Month: ${d.month}<br>Channel: ${channel}<br>Sessions: ${d.value}`)
+              .style("left", (event.pageX + 5) + "px")
+              .style("top", (event.pageY - 28) + "px");
+          })
+          .on("mouseout", function () {
+            tooltip.transition().duration(500).style("opacity", 0);
+          });
+      });
+
+      // Axis labels
+      svg.append("text")
+        .attr("transform", `translate(${width / 2},${height + margin.bottom - 10})`)
+        .style("text-anchor", "middle")
+        .text("Months");
+
+      svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Sessions");
+    }
+
+    // Create both charts
+    createChart();
+    createMonthlyChart();
   </script>
 </body>
 </html>
