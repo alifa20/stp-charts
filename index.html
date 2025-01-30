@@ -1,146 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Interactive Chart with D3.js</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-      .bar {
-        fill: steelblue;
-      }
-      .bar:hover {
-        fill: orange;
-      }
-      .axis-label {
-        font-size: 12px;
-      }
-      .tooltip {
-        position: absolute;
-        text-align: center;
-        width: 120px;
-        height: auto;
-        padding: 5px;
-        font: 12px sans-serif;
-        background: lightsteelblue;
-        border: 0px;
-        border-radius: 5px;
-        pointer-events: none;
-        opacity: 0;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Interactive Bar Chart: Sessions vs Revenue</h2>
-    <div id="chart"></div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Chart with D3.js</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .bar {
+      fill: steelblue;
+    }
+    .bar:hover {
+      fill: orange;
+    }
+    .axis-label {
+      font-size: 12px;
+    }
+    .tooltip {
+      position: absolute;
+      text-align: center;
+      width: 120px;
+      height: auto;
+      padding: 5px;
+      font: 12px sans-serif;
+      background: lightsteelblue;
+      border: 0px;
+      border-radius: 5px;
+      pointer-events: none;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Password protection
+    const password = "stp123"; // Set your password here
+    const userInput = prompt("Please enter the password to view this page:");
 
-    <script>
-      // Data
-      const data = [
-        { channel: "Cross-network", sessions: 120085, revenue: 178476.27 },
-        { channel: "Direct", sessions: 65113, revenue: 47548.51 },
-        { channel: "Email", sessions: 1148, revenue: 4561.79 },
-        { channel: "Organic Search", sessions: 109999, revenue: 66478.39 },
-        { channel: "Organic Shopping", sessions: 13978, revenue: 14263.08 },
-        { channel: "Organic Social", sessions: 18369, revenue: 593.88 },
-        { channel: "Paid Search", sessions: 4909, revenue: 11201.13 },
-        { channel: "Paid Shopping", sessions: 8523, revenue: 256.19 },
-        { channel: "Paid Social", sessions: 18017, revenue: 0 },
-        { channel: "Referral", sessions: 1807, revenue: 2623.84 },
-        { channel: "Unassigned", sessions: 2533, revenue: 10858.11 },
-      ];
+    if (userInput !== password) {
+      alert("Incorrect password. Access denied.");
+      window.location.href = "https://www.google.com"; // Redirect to another page or leave blank to stay on the same page
+    } else {
+      alert("Access granted. Welcome!");
+    }
+  </script>
 
-      // Set up SVG dimensions
-      const margin = { top: 50, right: 30, bottom: 70, left: 60 };
-      const width = 800 - margin.left - margin.right;
-      const height = 500 - margin.top - margin.bottom;
+  <h2>Interactive Bar Chart: Sessions vs Revenue</h2>
+  <div id="chart"></div>
 
-      // Append SVG to the chart div
-      const svg = d3
-        .select("#chart")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+  <script>
+    // Data
+    const data = [
+      { channel: "Cross-network", sessions: 120085, revenue: 178476.27 },
+      { channel: "Direct", sessions: 65113, revenue: 47548.51 },
+      { channel: "Email", sessions: 1148, revenue: 4561.79 },
+      { channel: "Organic Search", sessions: 109999, revenue: 66478.39 },
+      { channel: "Organic Shopping", sessions: 13978, revenue: 14263.08 },
+      { channel: "Organic Social", sessions: 18369, revenue: 593.88 },
+      { channel: "Paid Search", sessions: 4909, revenue: 11201.13 },
+      { channel: "Paid Shopping", sessions: 8523, revenue: 256.19 },
+      { channel: "Paid Social", sessions: 18017, revenue: 0 },
+      { channel: "Referral", sessions: 1807, revenue: 2623.84 },
+      { channel: "Unassigned", sessions: 2533, revenue: 10858.11 }
+    ];
 
-      // X scale (channels)
-      const x = d3
-        .scaleBand()
-        .domain(data.map((d) => d.channel))
-        .range([0, width])
-        .padding(0.1);
+    // Set up SVG dimensions
+    const margin = { top: 50, right: 30, bottom: 70, left: 60 };
+    const width = 800 - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
 
-      // Y scale (sessions or revenue)
-      const y = d3
-        .scaleLinear()
-        .domain([0, d3.max(data, (d) => d.sessions)])
-        .range([height, 0]);
+    // Append SVG to the chart div
+    const svg = d3.select("#chart")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
-      // X axis
-      svg
-        .append("g")
-        .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x))
-        .selectAll("text")
-        .attr("transform", "rotate(-45)")
-        .style("text-anchor", "end");
+    // X scale (channels)
+    const x = d3.scaleBand()
+      .domain(data.map(d => d.channel))
+      .range([0, width])
+      .padding(0.1);
 
-      // Y axis
-      svg.append("g").call(d3.axisLeft(y));
+    // Y scale (sessions or revenue)
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(data, d => d.sessions)])
+      .range([height, 0]);
 
-      // Bars
-      svg
-        .selectAll(".bar")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", (d) => x(d.channel))
-        .attr("y", (d) => y(d.sessions))
-        .attr("width", x.bandwidth())
-        .attr("height", (d) => height - y(d.sessions))
-        .on("mouseover", function (event, d) {
-          tooltip.transition().duration(200).style("opacity", 0.9);
-          tooltip
-            .html(
-              `Channel: ${d.channel}<br>Sessions: ${d.sessions}<br>Revenue: ${d.revenue}`
-            )
-            .style("left", event.pageX + 5 + "px")
-            .style("top", event.pageY - 28 + "px");
-        })
-        .on("mouseout", function () {
-          tooltip.transition().duration(500).style("opacity", 0);
-        });
+    // X axis
+    svg.append("g")
+      .attr("transform", `translate(0,${height})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .attr("transform", "rotate(-45)")
+      .style("text-anchor", "end");
 
-      // Tooltip
-      const tooltip = d3
-        .select("body")
-        .append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
+    // Y axis
+    svg.append("g")
+      .call(d3.axisLeft(y));
 
-      // Axis labels
-      svg
-        .append("text")
-        .attr(
-          "transform",
-          `translate(${width / 2},${height + margin.bottom - 10})`
-        )
-        .style("text-anchor", "middle")
-        .text("Channels");
+    // Bars
+    svg.selectAll(".bar")
+      .data(data)
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", d => x(d.channel))
+      .attr("y", d => y(d.sessions))
+      .attr("width", x.bandwidth())
+      .attr("height", d => height - y(d.sessions))
+      .on("mouseover", function (event, d) {
+        tooltip.transition().duration(200).style("opacity", 0.9);
+        tooltip.html(`Channel: ${d.channel}<br>Sessions: ${d.sessions}<br>Revenue: ${d.revenue}`)
+          .style("left", (event.pageX + 5) + "px")
+          .style("top", (event.pageY - 28) + "px");
+      })
+      .on("mouseout", function () {
+        tooltip.transition().duration(500).style("opacity", 0);
+      });
 
-      svg
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 0 - margin.left)
-        .attr("x", 0 - height / 2)
-        .attr("dy", "1em")
-        .style("text-anchor", "middle")
-        .text("Sessions");
-    </script>
-  </body>
+    // Tooltip
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+    // Axis labels
+    svg.append("text")
+      .attr("transform", `translate(${width / 2},${height + margin.bottom - 10})`)
+      .style("text-anchor", "middle")
+      .text("Channels");
+
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x", 0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Sessions");
+  </script>
+</body>
 </html>
